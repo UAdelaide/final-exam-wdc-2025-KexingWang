@@ -37,6 +37,32 @@
             <a href="walker-dashboard.html" class="btn btn-outline-success">Walker Dashboard</a>
         </div>
         -->
+
+        <!-- All Registered Dogs Table -->
+        <h2 class="mt-5 mb-3 text-secondary">All Registered Dogs</h2>
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Dog ID</th>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Owner ID</th>
+                    <th>Photo</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="dog in dogs" :key="dog.dog_id">
+                    <td>{{ dog.dog_id }}</td>
+                    <td>{{ dog.dog_name }}</td>
+                    <td>{{ dog.size }}</td>
+                    <td>{{ dog.owner_id }}</td>
+                    <td>
+                        <img :src="dog.photo" alt="Dog photo" class="img-thumbnail" style="width: 100px;">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
     </div>
 
     <script>
@@ -49,7 +75,8 @@
                     email: '',
                     password: '',
                     loginMessage: '',
-                    loginSuccess: false
+                    loginSuccess: false,
+                    dogs: [] // store all dogs with photos
                 };
             },
             methods: {
@@ -95,8 +122,32 @@
                         this.loginMessage = 'Network error or server unavailable.';
                         console.error('Login error:', error);
                     }
+                },
+                
+                // Fetch dogs and assign random images
+                async fetchAllDogs() {
+                    try {
+                        const res = await fetch('/api/dogs');
+                        const dogList = await res.json();
+
+                        const dogsWithPhotos = await Promise.all(dogList.map(async dog => {
+                            const photoRes = await fetch('https://dog.ceo/api/breeds/image/random');
+                            const photoData = await photoRes.json();
+                            return {
+                                ...dog,
+                                photo: photoData.message
+                            };
+                        }));
+
+                        this.dogs = dogsWithPhotos;
+                    } catch (err) {
+                        console.error('Failed to load dogs:', err);
+                    }
                 }
-            }
+            },
+          mounted() {
+              this.fetchAllDogs();
+          }
         }).mount('#app');
     </script>
 

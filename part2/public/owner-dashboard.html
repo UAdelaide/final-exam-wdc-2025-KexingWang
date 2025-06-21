@@ -11,6 +11,10 @@
   <div id="app" class="container py-4">
     <h1 class="mb-4 text-primary">Owner Dashboard</h1>
 
+    <!-- Add Logout Button -->
+    <button @click="logout" class="btn btn-outline-danger mb-4">Logout</button>
+
+
     <!-- Walk request form -->
     <div class="card mb-4">
       <div class="card-header bg-primary text-white">
@@ -80,6 +84,19 @@
         const message = ref('');
         const error = ref('');
 
+        async function logout() {
+          try {
+            // Call logout API
+            await fetch('/api/users/logout', { method: 'POST' });
+
+            // Redirect to login page
+            window.location.href = 'index.html';
+          } catch (err) {
+            console.error('Logout failed', err);
+          }
+        }
+
+
         async function loadWalks() {
           try {
             const res = await fetch('/api/walks');
@@ -124,7 +141,8 @@
           walks,
           message,
           error,
-          submitWalkRequest
+          submitWalkRequest,
+          logout
         };
       }
     }).mount('#app');

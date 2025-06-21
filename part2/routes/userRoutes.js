@@ -59,4 +59,38 @@ router.post('/login', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/users/logout
+ * Logs out the current user by destroying the session
+ * Clears the session cookie and returns success message
+ * 
+ * Response format:
+ * {
+ *   "message": "Logout successful"
+ * }
+ * 
+ * Error responses:
+ * 500 - Server error during logout
+ */
+router.post('/logout', (req, res) => {
+  try {
+    // Destroy the session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ error: 'Logout failed' });
+      }
+      
+      // Clear the session cookie
+      res.clearCookie('connect.sid');
+      
+      // Send success response
+      res.json({ message: 'Logout successful' });
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Logout failed' });
+  }
+});
+
 module.exports = router;

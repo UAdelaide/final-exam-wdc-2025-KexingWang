@@ -46,7 +46,28 @@
         const walks = ref([]);
         const message = ref('');
         const error = ref('');
-        const user = 3;
+
+        const currentUser = ref(null); // store logged-in user
+
+        // Get currently logged-in user from session
+        async function getCurrentUser() {
+          try {
+            const res = await fetch('/api/users/me');
+            if (!res.ok) {
+              // Redirect to login page if not logged in
+              window.location.href = 'index.html';
+              throw new Error('Not logged in');
+            }
+            currentUser.value = await res.json();
+            console.log('Current user:', currentUser.value);
+          } catch (err) {
+            console.error('Fetch user failed:', err);
+            if (err.message !== 'Not logged in') {
+              error.value = 'Failed to get user info.';
+              window.location.href = 'index.html';
+            }
+          }
+        }
 
         async function logout() {
           try {
@@ -70,12 +91,18 @@
           }
         }
 
+        // Apply to a walk request as the current walker
         async function applyToWalk(requestId) {
+          if (!currentUser.value) {
+            error.value = 'User not loaded';
+            return;
+          }
+
           try {
             const res = await fetch(`/api/walks/${requestId}/apply`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walker_id: user })
+              body: JSON.stringify({ walker_id: currentUser.value.user_id })
             });
             const result = await res.json();
 
@@ -89,7 +116,8 @@
           }
         }
 
-        onMounted(() => {
+        onMounted(async () => {
+          await getCurrentUser(); // On page load
           loadWalkRequests();
         });
 

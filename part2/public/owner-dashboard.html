@@ -22,10 +22,18 @@
       </div>
       <div class="card-body">
         <form @submit.prevent="submitWalkRequest">
+          <!-- Select owner's dog begin -->
           <div class="mb-3">
-            <label class="form-label">Dog ID</label>
-            <input v-model="form.dog_id" type="number" class="form-control" required>
+              <label for="dogSelect" class="form-label">Select Your Dog</label>
+              <select id="dogSelect" v-model="form.dog_id" class="form-select" required>
+                  <option value="" disabled selected>-- Choose a dog --</option>
+                  <option v-for="dog in userDogs" :key="dog.dog_id" :value="dog.dog_id">
+                      {{ dog.dog_name }}
+                  </option>
+              </select>
           </div>
+          <!-- Select owner's dog end -->
+
           <div class="mb-3">
             <label class="form-label">Requested Date & Time</label>
             <input v-model="form.requested_time" type="datetime-local" class="form-control" required>
@@ -69,7 +77,7 @@
   </div>
 
   <script>
-    const { createApp, ref, onMounted } = Vue;
+    const { createApp, ref, onMounted, computed } = Vue;
 
     createApp({
       setup() {
@@ -83,6 +91,54 @@
         const walks = ref([]);
         const message = ref('');
         const error = ref('');
+        
+        const currentUser = ref(null); // To store logged-in user info
+        const allDogs = ref([]); // To store all dogs from /api/dogs
+
+
+        // Computed property to filter dogs owned by the current user
+        const userDogs = computed(() => {
+            if (currentUser.value && allDogs.value.length > 0) {
+                return allDogs.value.filter(dog => dog.owner_id === currentUser.value.user_id);
+            }
+            return [];
+        });
+
+        // get current login user
+        async function fetchCurrentUser() {
+            try {
+                const res = await fetch('/api/users/me');
+                if (!res.ok) {
+                    // If not logged in, redirect to index.html
+                    window.location.href = 'index.html';
+                    throw new Error('Not logged in');
+                }
+                currentUser.value = await res.json();
+                console.log('Current User:', currentUser.value);
+            } catch (err) {
+                console.error('Failed to fetch current user:', err);
+                // Ensure redirection if not logged in or error
+                if (err.message !== 'Not logged in') { // Avoid double redirect message
+                    error.value = 'Failed to load user data. Please log in again.';
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // get all dogs
+        async function fetchAllDogs() {
+            try {
+                const res = await fetch('/api/dogs');
+                if (!res.ok) {
+                    throw new Error('Failed to fetch dogs');
+                }
+                allDogs.value = await res.json();
+                console.log('All Dogs:', allDogs.value);
+            } catch (err) {
+                console.error('Error fetching dogs:', err);
+                error.value = 'Failed to load dog list.';
+            }
+        }
 
         async function logout() {
           try {
@@ -132,7 +188,9 @@
           }
         }
 
-        onMounted(() => {
+        onMounted(async () => {
+          await fetchCurrentUser(); // First, get current user
+          await fetchAllDogs();     // Then, get all dogs
           loadWalks();
         });
 
@@ -141,6 +199,7 @@
           walks,
           message,
           error,
+          userDogs, // Expose userDogs to template
           submitWalkRequest,
           logout
         };

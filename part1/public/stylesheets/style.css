@@ -1,0 +1,60 @@
+body {
+  background: lime;
+  color: yellow;
+  font-family: 'Papyrus', fantasy;
+  font-size: 26px;
+}
+
+.title {
+  font-size: 48px;
+  text-shadow: 2px 2px 4px hotpink;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.dog-info {
+  margin: 40px;
+  border: 5px dotted red;
+  padding: 30px;
+  background: orange;
+  transform: rotate(-2deg);
+}
+
+img {
+  width: 450px;
+  height: 450px;
+  border: 10px dashed purple;
+}
+
+.fetch-button {
+  padding: 25px;
+  font-size: 22px;
+  background: cyan;
+  color: black;
+  border: 5px solid blue;
+  margin-top: 60px;
+  cursor: pointer;
+}
+
+button:focus {
+  outline: none;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
